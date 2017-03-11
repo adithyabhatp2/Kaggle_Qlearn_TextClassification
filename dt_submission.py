@@ -1,7 +1,12 @@
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction import DictVectorizer as DV
+from sklearn import svm
+from sklearn.naive_bayes import GaussianNB
+from sklearn import neighbors
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn import metrics
 from sklearn.metrics import precision_recall_curve
 from sklearn.cross_validation import StratifiedShuffleSplit
@@ -40,11 +45,11 @@ class MultiColumnLabelEncoder:
 
 
 def main():
-    data_dir = './v1/'  # needs trailing slash
+    version_dir = './v2/'  # needs trailing slash
 
     # validation split, both files with headers and the Happy column
-    train_file = data_dir + 'trainData.csv'
-    test_file = data_dir + 'testData.csv'
+    train_file = version_dir + 'trainData.csv'
+    test_file = version_dir + 'testData.csv'
 
     label_file = 'train_labels.csv'
 
@@ -75,30 +80,49 @@ def main():
 
     # scale numeric features to <0,1>
     max_num = np.amax(x_num_combined, 0)
-
     x_num_combined = np.true_divide(x_num_combined, max_num)  # scale by max. truedivide needed for decimals
-    x_num_train = x_num_combined[0:x_train_count]
-    x_num_test = x_num_combined[x_train_count:]
 
 
-    dt_classifier = DecisionTreeClassifier(min_samples_split=10)
-    dt_classifier.fit(x_train_num, y_train_num)
-    tree.export_graphviz(dt_classifier, feature_names=used_cols, out_file="./v1/weighted_tree.dot")
-    predicted = dt_classifier.predict(x_test)
+    classifierType = "DT"
+
+    print "Classifier: "+classifierType
+
+    if classifierType == "DT":
+        classifier = DecisionTreeClassifier(min_samples_leaf=8)
+        classifier.fit(x_train_num, y_train_num)
+        tree.export_graphviz(classifier, feature_names=used_cols, out_file=version_dir+"sub_weighted_tree.dot")
+
+    elif classifierType == "Ada":
+        classifier = AdaBoostClassifier(n_estimators=200, learning_rate=0.01)
+        classifier.fit(x_train_num, y_train_num)
+
+    elif classifierType == "SVM":
+        classifier = svm.SVC(probability=True, C=1, kernel='linear')
+        classifier.fit(x_train_num, y_train_num)
+
+    elif classifierType == "RF":
+        classifier = RandomForestClassifier(n_estimators=200, n_jobs=-1)
+        classifier.fit(x_train_num, y_train_num)
+
+    elif classifierType == "NB":
+        classifier = GaussianNB()
+        classifier.fit(x_train_num, y_train_num)
+
+    elif classifierType == "KNN":
+        classifier = neighbors.KNeighborsClassifier(n_neighbors=5)
+        classifier.fit(x_train_num, y_train_num)
+
+
+    predicted = classifier.predict(x_test)
 
     ids = test['id'].as_matrix()
     output = zip(ids,predicted)
 
-    outFilePath = "./v1/predictions.csv"
+    outFilePath = version_dir+"predictions.csv"
     with open(outFilePath, 'w') as outFile:
         outFile.write("Id,Prediction\n")
         writer = csv.writer(outFile)
         writer.writerows(output)
-        # for opLine in output:
-        #     outFile.write(str(opLine))
-
-
-
 
 
 

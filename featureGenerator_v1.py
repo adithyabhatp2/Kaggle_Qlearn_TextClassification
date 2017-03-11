@@ -1,9 +1,52 @@
 import sys, os, os.path
 import csv
+import numpy as np
+import re
 
 
 
-def generateBinaryFeatureOnPresense(inputFilePath, tokenList, isCaseSensitive, addFeatureHeaders, keepLabels):
+def generateRegexFeatureOnPresence(inputFilePath):
+    if not os.path.exists(inputFilePath):
+        print 'Input File ', inputFilePath, 'does not exist'
+        sys.exit(1)
+
+    header = ["r_num", "r_abbr"]
+
+    numberRegex = '[0-9]+'
+    abbrRegex = '[A-Z][A-Z][A-Z]+'
+
+    numberPattern = re.compile(numberRegex)
+    abbrPattern = re.compile(abbrRegex)
+
+    output = []
+    output.append(header)
+    data_colInFile = 1
+
+    with open(inputFilePath, 'r') as inputFile:
+        # skip header line
+        next(inputFile)
+        for instance in inputFile:
+            featureVector = []
+            lineParts = instance.split(',')
+            data = lineParts[data_colInFile]
+
+            if numberPattern.search(data):
+                featureVector.append(1)
+            else:
+                featureVector.append(0)
+
+            if abbrPattern.search(data):
+                featureVector.append(1)
+            else:
+                featureVector.append(0)
+
+            output.append(featureVector)
+
+    return output
+
+
+
+def generateBinaryFeatureOnPresence(inputFilePath, tokenList, isCaseSensitive, addFeatureHeaders, keepLabels):
 
     if not os.path.exists(inputFilePath):
         print 'Input File ', inputFilePath, 'does not exist'
@@ -21,9 +64,8 @@ def generateBinaryFeatureOnPresense(inputFilePath, tokenList, isCaseSensitive, a
     if addFeatureHeaders:
         output.append(header)
 
-    label_colInfile = 0
+    id_colInfile = 0
     data_colInFile = 1
-
 
     with open(inputFilePath, 'r') as inputFile:
         # skip header line
@@ -34,7 +76,7 @@ def generateBinaryFeatureOnPresense(inputFilePath, tokenList, isCaseSensitive, a
             lineParts = instance.split(',')
 
             if keepLabels:
-                label = int(lineParts[label_colInfile])
+                label = int(lineParts[id_colInfile])
                 featureVector.append(label)
 
             data = lineParts[data_colInFile]
@@ -57,30 +99,32 @@ def main():
 
     type = "train"
     inputFilePath = "./"+type+"_questions.txt"
-    outFilePath = "./v1/"+type+"Data.csv"
-    questionTokens = {"who", "what", "when", "where", "why", "which", "how", "like", "many", "how many", "does", "is"}
+    outFilePath = "./v3/"+type+"Data.csv"
+    questionTokens = {"who", "what", "when", "where", "why", "which", "how", "like", "many", "how many", "does", "is", "isn't", "doesnt", "doesn't"}
 
-    abbrClassTokens = {"full form", "expansion", "stand for", "mean", "what does", "meaning"}
-    humanClassTokens = {"who was", "father", "mother", "person", "whom", "with"}
-    locationClassTokens = {"location", "where", "city", "place"}
-    descriptionClassTokens = {"describe", "doing"}
-    entityClassTokens = {"what", "called"}
-    numberClassTokens = {"much", "how much", "many","tall", "height", "width", "weight", "age", "what is the mean", "average", "distance", "many", "big"}
+    abbrClassTokens = {"full form", "expansion", "stand for", "what does", "meaning", "abbr"}
+    humanClassTokens = {"who was", "father", "mother", "person", "whom", "with", "man", "woman", "he", "she", "is that", "do"}
+    locationClassTokens = {"location", "where", "city", "place", "from", "lie in", "visit", "capital", "state", "country", "continent", "ocean", "sea"}
+    descriptionClassTokens = {"describe", "doing", "what should", "how can", "how did", "how would", "is there a", "way", "way to", "for", "like", "mean ", "entail", "origin of", "name of"}
+    entityClassTokens = {"what", "called", "has", "have", "is there", "name"}
+    numberClassTokens = {"much", "how much", "many","tall", "height", "width", "weight", "age", "what is the mean", "average", "distance", "many", "big", "how long", "how many", "year", "amount", "top", "date", "time", "number", "numeral", "sum", "percent"}
 
+    prepositionTokens = {"in", "on", "among", "upon", "of", "by", "some", "like", "into"}
+    adjectivetokens = {"best", "most", "major", "minor", "good", "bad", "famous", "famed", "largest", "least", "lowest", "max", "minimum"}
+    start_with_tokens = {"how to", "how do", "is there", "what is", "what was", "are we", "what kind", "how much", "how many", "how long", "how can", "what was", "what were"}
 
-    presenceTokenList = list(questionTokens | abbrClassTokens | humanClassTokens | locationClassTokens | descriptionClassTokens | entityClassTokens | numberClassTokens)
+    presenceTokenList = list(questionTokens | abbrClassTokens | humanClassTokens | locationClassTokens |
+                             descriptionClassTokens | entityClassTokens | numberClassTokens | prepositionTokens | adjectivetokens | start_with_tokens)
 
     featureHeaders = "Label"
 
-    presenceFeatures = generateBinaryFeatureOnPresense(inputFilePath, presenceTokenList, False, True, True)
+    presenceFeatures = generateBinaryFeatureOnPresence(inputFilePath, presenceTokenList, False, True, True)
 
-
-    numberRegex = '[0-9]+'
-    abbrRegex = '[A-Z][A-Z][A-Z]+'
+    regexFeatures = generateRegexFeatureOnPresence(inputFilePath)
 
     citiesList = ""
 
-    featureVectors = presenceFeatures
+    featureVectors = np.concatenate((presenceFeatures,regexFeatures), axis=1)
 
     with open(outFilePath, 'w') as outFile:
         writer = csv.writer(outFile)

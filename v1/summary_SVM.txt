@@ -1,0 +1,44 @@
+Classifier: SVM C=10 rbf, or C=1, linear
+
+Metrics classification report - Test
+             precision    recall  f1-score   support
+
+          0       1.00      0.73      0.84       107
+          1       0.96      0.40      0.57       188
+          2       0.79      0.64      0.71       157
+          3       0.43      0.67      0.52       193
+          4       0.35      0.55      0.43       194
+          5       0.83      0.57      0.68       161
+
+avg / total       0.70      0.58      0.60      1000
+
+Confusion Matrix report - Test
+[[ 78   0   0  28   1   0]
+ [  0  76   2  17  90   3]
+ [  0   0 101  18  36   2]
+ [  0   0   6 129  53   5]
+ [  0   3  17  59 106   9]
+ [  0   0   2  52  15  92]]
+Test Correct predictions:  582
+
+
+Metrics classification report - Train
+             precision    recall  f1-score   support
+
+          0       0.99      0.80      0.89       207
+          1       0.91      0.45      0.60       344
+          2       0.84      0.60      0.70       336
+          3       0.42      0.65      0.51       372
+          4       0.41      0.64      0.50       391
+          5       0.84      0.57      0.68       350
+
+avg / total       0.71      0.61      0.62      2000
+
+Confusion Matrix report - Train
+[[166   0   0  41   0   0]
+ [  0 155   4  32 145   8]
+ [  0   3 202  44  82   5]
+ [  2   6   8 242 110   4]
+ [  0   5  25  92 249  20]
+ [  0   1   2 124  25 198]]
+Train correct predictions:  1212

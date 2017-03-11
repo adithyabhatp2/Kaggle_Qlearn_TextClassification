@@ -1,0 +1,88 @@
+/usr/bin/python2.7 /u/a/d/adbhat/private/gitRepository/QLearn/dt.py
+Classifier: Ada
+
+Metrics classification report - Test
+             precision    recall  f1-score   support
+
+          0       0.98      0.74      0.84       107
+          1       0.94      0.33      0.49       188
+          2       0.80      0.44      0.57       157
+          3       0.78      0.35      0.49       193
+          4       0.28      0.93      0.43       194
+          5       0.96      0.16      0.27       161
+
+avg / total       0.77      0.48      0.49      1000
+
+Confusion Matrix report - Test
+[[ 79   0   1   0  27   0]
+ [  0  62   1   1 123   1]
+ [  0   1  69   2  85   0]
+ [  2   0   4  68 119   0]
+ [  0   3   8   2 181   0]
+ [  0   0   3  14 119  25]]
+Test Correct predictions:  484
+
+
+Metrics classification report - Train
+             precision    recall  f1-score   support
+
+          0       0.94      0.81      0.87       207
+          1       0.90      0.38      0.53       344
+          2       0.73      0.34      0.46       336
+          3       0.68      0.26      0.38       372
+          4       0.27      0.90      0.41       391
+          5       0.98      0.15      0.27       350
+
+avg / total       0.72      0.46      0.46      2000
+
+Confusion Matrix report - Train
+[[167   0   0   1  39   0]
+ [  0 129   4   4 207   0]
+ [  0   3 114   3 215   1]
+ [ 11   6   9  98 248   0]
+ [  0   3  27   8 353   0]
+ [  0   2   2  31 261  54]]
+Train correct predictions:  915
+
+Feature Importances
+[['0.245' 'p_who']
+ ['0.205' 'p_does']
+ ['0.15' 'p_mean']
+ ['0.105' 'p_how']
+ ['0.09' 'p_stand_for']
+ ['0.08' 'p_where']
+ ['0.06' 'p_which']
+ ['0.02' 'p_city']
+ ['0.015' 'p_how_many']
+ ['0.015' 'p_what']
+ ['0.01' 'p_person']
+ ['0.005' 'p_why']
+ ['0.0' 'p_what_is_the_mean']
+ ['0.0' 'p_many']
+ ['0.0' 'p_describe']
+ ['0.0' 'p_weight']
+ ['0.0' 'p_distance']
+ ['0.0' 'p_doing']
+ ['0.0' 'p_father']
+ ['0.0' 'p_is']
+ ['0.0' 'p_big']
+ ['0.0' 'p_expansion']
+ ['0.0' 'p_height']
+ ['0.0' 'p_meaning']
+ ['0.0' 'p_width']
+ ['0.0' 'p_how_much']
+ ['0.0' 'p_age']
+ ['0.0' 'p_place']
+ ['0.0' 'p_with']
+ ['0.0' 'p_full_form']
+ ['0.0' 'p_tall']
+ ['0.0' 'p_called']
+ ['0.0' 'p_much']
+ ['0.0' 'p_like']
+ ['0.0' 'p_whom']
+ ['0.0' 'p_mother']
+ ['0.0' 'p_average']
+ ['0.0' 'p_when']
+ ['0.0' 'p_location']
+ ['0.0' 'p_what_does']
+ ['0.0' 'p_who_was']]

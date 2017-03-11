@@ -1,7 +1,12 @@
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction import DictVectorizer as DV
+from sklearn import svm
+from sklearn.naive_bayes import GaussianNB
+from sklearn import neighbors
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn import metrics
 from sklearn.metrics import precision_recall_curve
 from sklearn.cross_validation import StratifiedShuffleSplit
@@ -10,7 +15,8 @@ from sklearn import tree
 from sklearn import preprocessing
 from sklearn.preprocessing import LabelEncoder
 import sys
-
+import os
+from plot_confusion_matrix import plot_confusion_matrix
 
 class MultiColumnLabelEncoder:
     def __init__(self, columns=None):
@@ -39,10 +45,10 @@ class MultiColumnLabelEncoder:
 
 
 def main():
-    data_dir = './v1/'  # needs trailing slash
+    version_dir = './v3/'  # needs trailing slash
 
     # validation split, both files with headers and the Happy column
-    train_file = data_dir + 'trainData.csv'
+    train_file = version_dir + 'trainData.csv'
 
     label_file = 'train_labels.csv'
 
@@ -67,14 +73,14 @@ def main():
 
     y_train_num = y_train
     x_train_num = x_train
-    all_cols = list(train.columns.values)
+    all_col_headers = list(train.columns.values)
 
     remove_cols = ['id']
-    numeric_cols = [x for x in all_cols if x not in remove_cols]
+    numeric_cols = [x for x in all_col_headers if x not in remove_cols]
     # remove_cols = ['label','instance weight','migration code-change in msa','migration code-change in reg','migration code-move within reg','migration prev res in sunbelt']
 
-    cat_cols = [x for x in all_cols if x not in numeric_cols and x not in remove_cols]
-    used_cols = [x for x in all_cols if x not in remove_cols]
+    cat_cols = [x for x in all_col_headers if x not in numeric_cols and x not in remove_cols]
+    used_cols = [x for x in all_col_headers if x not in remove_cols]
 
     # handle numerical features
     x_num_train = train[numeric_cols].as_matrix()
@@ -89,63 +95,89 @@ def main():
     max_num = np.amax(x_num_combined, 0)
 
     x_num_combined = np.true_divide(x_num_combined, max_num)  # scale by max. truedivide needed for decimals
-    x_num_train = x_num_combined[0:x_train_count]
-    x_num_test = x_num_combined[x_train_count:]
+    x_train_num_scaled = x_num_combined[0:x_train_count]
+    x_test_num_scaled = x_num_combined[x_train_count:]
 
-    y_conf = []
-    y_test_num = []
+    y_test_num = y_test.as_matrix()
+    y_train_num = y_train.as_matrix()
 
-    print len(y_test)
-    print type(y_test)
-    y_test = y_test.as_matrix()
+    class_labels = ['Abbr', 'Human', 'Loc', 'Desc', 'Entity', 'Num']
 
-    y_test_num = y_test
+    classifierType = "SVM"
+    print "Classifier: "+classifierType
+
+    if classifierType == "DT":
+        classifier = DecisionTreeClassifier(min_samples_leaf=10)
+        classifier.fit(x_train_num, y_train_num)
+        tree.export_graphviz(classifier, feature_names=used_cols, out_file=version_dir+"weighted_tree.dot")
+
+    elif classifierType == "Ada":
+        # 200,0.01 - v1
+        # 50, 0.1 - v2
+        classifier = AdaBoostClassifier(n_estimators=200, learning_rate=0.1)
+        classifier.fit(x_train_num, y_train_num)
+
+    elif classifierType == "SVM":
+        classifier = svm.SVC(probability=True, C=1, kernel='linear')
+        classifier.fit(x_train_num, y_train_num)
+
+    elif classifierType == "RF":
+        classifier = RandomForestClassifier(n_estimators=200, n_jobs=-1)
+        classifier.fit(x_train_num, y_train_num)
+
+    elif classifierType == "NB":
+        classifier = GaussianNB()
+        classifier.fit(x_train_num, y_train_num)
+
+    elif classifierType == "KNN":
+        classifier = neighbors.KNeighborsClassifier(n_neighbors=1)
+        classifier.fit(x_train_num, y_train_num)
+
+    predicted_test = classifier.predict(x_test)
+    predicted_train = classifier.predict(x_train)
+
+    print "\nMetrics classification report - Test"
+    print(metrics.classification_report(y_test_num, predicted_test))
+    print "Confusion Matrix report - Test"
+    test_confusion_matrix = metrics.confusion_matrix(y_test_num, predicted_test)
+    print test_confusion_matrix
+    print "Test Correct predictions: ", np.trace(test_confusion_matrix)
+
+    plot_confusion_matrix(test_confusion_matrix, class_labels)
+
+    print ""
+
+    print "\nMetrics classification report - Train"
+    print metrics.classification_report(y_train_num, predicted_train)
+    print "Confusion Matrix report - Train"
+    train_confusion_matrix = metrics.confusion_matrix(y_train_num, predicted_train)
+    print train_confusion_matrix
+    print "Train correct predictions: ", np.trace(train_confusion_matrix)
 
 
-    dt_classifier = DecisionTreeClassifier(min_samples_split=10)
-    dt_classifier.fit(x_train_num, y_train_num)
-    tree.export_graphviz(dt_classifier, feature_names=used_cols, out_file="./v1/weighted_tree.dot")
-    predicted = dt_classifier.predict(x_test)
+    outputHeaderRow = list(all_col_headers)
+    outputHeaderRow.insert(0, "Predicted")
+    outputHeaderRow.insert(0, "Actual")
+    trainOutputData = np.column_stack((y_train_num, predicted_train, train.as_matrix()))
+    testOutputData = np.column_stack((y_test_num, predicted_test, test.as_matrix()))
 
-    print(metrics.classification_report(y_test_num, predicted))
+    trainOp_wthHeader = np.vstack((outputHeaderRow, trainOutputData))
+    testOp_wthHeader = np.vstack((outputHeaderRow, testOutputData))
 
-    probs = dt_classifier.predict_proba(x_test)
+    np.savetxt(fname = version_dir+'train_preds.csv',X = trainOp_wthHeader , delimiter=',',fmt="%s")
+    np.savetxt(version_dir+'test_preds.csv',testOp_wthHeader , delimiter=',', fmt="%s")
 
-    # #Neg is 0 in probs and 0 in y_test
-    # #pos is 1 in probs and 1 in y_test
-    # print "Going to plot"
 
-    for class_to_plot in [0, 1, 2, 3, 4, 5]:
-        y_conf = []
-        for i in range(len(y_test)):
-            y_conf.append(probs[i][class_to_plot])
-        precision, recall, thresholds = precision_recall_curve(y_test_num, y_conf, pos_label=class_to_plot)
-        plt.plot(recall, precision)
-        plt.axis([0, 1, 0, 1])
-        plt.yticks(np.arange(0, 1.1, 0.1))
+    print "\nFeature Importances"
+    featImps = classifier.feature_importances_
+    featNames = np.array(all_col_headers[1:]).flatten()
+    featVals = np.column_stack((featImps, featNames))
+    featVals = featVals[featVals[:,0].argsort()[::-1]]
 
-        print "Checking class", class_to_plot
-        plt.xlabel('Recall')
-        plt.ylabel('Precision')
-        plt.title('DT without instance weights for class ' + str(class_to_plot))
-        plt.grid(b=True, which='major', axis='both', color='black', linestyle='-', alpha=0.3)
-        plt.xticks(np.arange(0, 1.1, 0.1))
-        filename = "./v1/dt_weighted_" + str(class_to_plot) + ".png"
-        plt.savefig(filename)
-    # plt.clf()
+    print featVals
 
-    # #Learn without Instance weights
-    plt.clf()
+    # sys.stdin.read(1)
 
-    temp = dt_classifier.feature_importances_
-    print "NumCols : " + str(len(all_cols))
-    print "Feautre Importances - length" + str(len(temp))
-    print temp
-
-    print "Feats"
-
-    for i in range(0, len(temp)):
-        print all_cols[i + 2], " ", temp[i]
 
 
 if __name__ == '__main__':
