@@ -144,12 +144,12 @@ def main():
 
     abbrClassTokens = {"full form", "expansion", "stand for", "what does", "meaning", "abbr"}
     humanClassTokens = {"who was", "father", "mother", "person", "whom", "with", "man", "woman", "he", "she", "is that", "do"}
-    locationClassTokens = {"location", "where", "city", "place", "from", "lie in", "visit", "capital", "state", "country", "continent", "ocean", "sea"}
-    descriptionClassTokens = {"describe", "doing", "what should", "how can", "how did", "how would", "is there a", "way", "way to", "for", "like", "mean ", "entail", "origin of", "name of"}
-    entityClassTokens = {"what", "called", "has", "have", "is there", "name"}
-    numberClassTokens = {"much", "how much", "many","tall", "height", "width", "weight", "age", "what is the mean", "average", "distance", "many", "big", "how long", "how many", "year", "amount", "top", "date", "time", "number", "numeral", "sum", "percent"}
+    locationClassTokens = {"location", "where", "city", "place", "from", "lie in", "visit", "capital", "state", "country", "continent", "ocean", "sea", "nation", "island", "constellation", "river"}
+    descriptionClassTokens = {"describe", "doing", "what should", "how can", "how did", "how would", "is there a", "way", "way to", "for", "like", "mean ", "entail", "origin of", "name of", "diff", "cause", "chance"}
+    entityClassTokens = {"what", "called", "has", "have", "is there", "name", "some of"}
+    numberClassTokens = {"much", "how much", "many","tall", "height", "width", "weight", "age", "what is the mean", "average", "distance", "many", "big", "how long", "how many", "year", "amount", "top", "date", "time", "number", "numeral", "sum", "percent", "date", "day", "time", "old", "popul", "cost", "rate"}
 
-    prepositionTokens = {"in", "on", "among", "upon", "of", "by", "some", "like", "into"}
+    prepositionTokens = {"in", "on", "among", "upon", "of", "by", "some", "like", "into", "some of"}
     adjectivetokens = {"best", "most", "major", "minor", "good", "bad", "famous", "famed", "largest", "least", "lowest", "max", "minimum"}
     start_with_tokens = {"how to", "how do", "is there", "what is", "what was", "are we", "what kind", "how much", "how many", "how long", "how can", "what was", "what were"}
 

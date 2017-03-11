@@ -109,6 +109,7 @@ def main():
     if classifierType == "DT":
         classifier = DecisionTreeClassifier(min_samples_leaf=10)
         classifier.fit(x_train_num, y_train_num)
+        # classifier.fit(np.concatenate((x_train_num, x_train_num), axis=0), np.concatenate((y_train_num, y_train_num), axis=0))
         tree.export_graphviz(classifier, feature_names=used_cols, out_file=version_dir+"weighted_tree.dot")
 
     elif classifierType == "Ada":
@@ -118,8 +119,9 @@ def main():
         classifier.fit(x_train_num, y_train_num)
 
     elif classifierType == "SVM":
-        classifier = svm.SVC(probability=True, C=1, kernel='linear')
+        classifier = svm.SVC(probability=True, C=10, kernel='rbf')
         classifier.fit(x_train_num, y_train_num)
+        # classifier.fit(np.concatenate((x_train_num, x_train_num), axis=0), np.concatenate((y_train_num, y_train_num), axis=0))
 
     elif classifierType == "RF":
         classifier = RandomForestClassifier(n_estimators=200, n_jobs=-1)
