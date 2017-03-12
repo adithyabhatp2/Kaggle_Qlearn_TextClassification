@@ -45,7 +45,7 @@ class MultiColumnLabelEncoder:
 
 
 def main():
-    version_dir = './v2/'  # needs trailing slash
+    version_dir = './v6/'  # needs trailing slash
 
     # validation split, both files with headers and the Happy column
     train_file = version_dir + 'trainData.csv'
@@ -83,7 +83,7 @@ def main():
     x_num_combined = np.true_divide(x_num_combined, max_num)  # scale by max. truedivide needed for decimals
 
 
-    classifierType = "DT"
+    classifierType = "SVM"
 
     print "Classifier: "+classifierType
 

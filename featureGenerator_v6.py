@@ -5,6 +5,55 @@ import re
 
 
 
+def otherFeatureGeneration(inputFilePath, tokenListOfLists):
+    if not os.path.exists(inputFilePath):
+        print 'Input File ', inputFilePath, 'does not exist'
+        sys.exit(1)
+
+    output = []
+    header = []
+    data_colInFile = 1
+
+    for tokenList in tokenListOfLists:
+        header.append('any_'+str.replace(tokenList[0], ' ','_'))
+
+    header.append('length')
+    output.append(header)
+
+    with open(inputFilePath, 'r') as inputFile:
+        # skip header line
+        next(inputFile)
+
+        for instance in inputFile:
+            featureVector = []
+            lineParts = instance.split(',')
+            data = lineParts[data_colInFile]
+
+            data = data.lower().lstrip(' ')
+            data = data.replace('what \'s', 'what is')
+            data = data.replace('who \'s', 'who is')
+            data = data.replace('when \'s', 'when is')
+
+
+
+            for tokenList in tokenListOfLists:
+                found = False
+                for token in tokenList:
+                    if token in data:
+                        featureVector.append(1)
+                        found = True
+                        break
+                if found==False:
+                    featureVector.append(0)
+
+            featureVector.append(len(data.split(' ')))
+            output.append(featureVector)
+
+    return output
+
+
+
+
 def generateFeatureOnTextStart(inputFilePath, tokenList):
     if not os.path.exists(inputFilePath):
         print 'Input File ', inputFilePath, 'does not exist'
@@ -30,6 +79,9 @@ def generateFeatureOnTextStart(inputFilePath, tokenList):
             data = lineParts[data_colInFile]
 
             data = data.lower().lstrip(' ')
+            data = data.replace('what \'s', 'what is')
+            data = data.replace('who \'s', 'who is')
+            data = data.replace('when \'s', 'when is')
 
             for token in tokenList:
                 if data.startswith(token):
@@ -151,23 +203,25 @@ def generateBinaryFeatureOnPresence(inputFilePath, tokenList, isCaseSensitive, a
 
 
 
+
+
 def main():
 
-    type = "train"
+    type = "test"
     inputFilePath = "./"+type+"_questions.txt"
-    outFilePath = "./v4/"+type+"Data.csv"
+    outFilePath = "./v6/"+type+"Data.csv"
     questionTokens = {"who", "what", "when", "where", "why", "which", "how", "like", "many", "how many", "does", "is", "isn't", "doesnt", "doesn't"}
 
     abbrClassTokens = {"full form", "expansion", "stand for", "what does", "meaning", "abbr"}
-    humanClassTokens = {"who was", "father", "mother", "person", "whom", "with", "man", "woman", "he", "she", "is that", "do", "name of"}
+    humanClassTokens = {"who was", "father", "mother", "person", "whom", "with", "man ", " he ", "she", "is that", "do", "name of"}
     locationClassTokens = {"location", "where", "city", "place", "from", "lie in", "visit", "capital", "state", "country", "continent", "ocean", "sea", "nation", "island", "constellation", "river", "canal"}
-    descriptionClassTokens = {"describe", "doing", "what should", "how can", "how did", "how would", "is there a", "way", "way to", "for", "like", "mean ", "entail", "origin of", "name of", "diff", "cause", "chance"}
-    entityClassTokens = {"what", "called", "has", "have", "is there", "name", "some of"}
-    numberClassTokens = {"much", "how much", "many","tall", "height", "width", "weight", "age", "what is the mean", "average", "distance", "many", "big", "how long", "how many", "year", "amount", "top", "date", "time", "number", "numeral", "sum", "percent", "old", "cost", "rate", "day", "populat", "cost", "rate"}
+    descriptionClassTokens = {"describe", "doing", "what should", "how can", "how did", "how would", "is there a", "way", "way to", "for", "like", "mean ", "entail", "origin of", "name of", " diff", "cause", "chance", " if ", "between"}
+    entityClassTokens = {"what", "called", "has", "have", "is there", "name", "some of", "name a"}
+    numberClassTokens = {"much", "how much", "many","tall", "height", "width", "weight", " age", "what is the mean", "average", "distance", "many", "big", "how long", "how many", "year", "amount", "top", "date", "time", "number", "numeral", "sum", "percent", "old", "cost", "rate", "day", "populat", "cost", "rate", "max", "minimum", "largest", "least", "lowest"}
 
     prepositionTokens = {"in", "on", "among", "upon", "of", "by", "some", "like", "into", "some of"}
-    adjectivetokens = {"best", "most", "major", "minor", "good", "bad", "famous", "famed", "largest", "least", "lowest", "max", "minimum"}
-    start_with_tokens = {"how to", "how do", "is there", "what is", "what was", "are we", "what kind", "how much", "how many", "how long", "how can", "what was", "what were"}
+    adjectivetokens = {"best", "most", "major", "minor", "good", "bad", "famous", "famed", "worst"}
+    start_with_tokens = {"how to", "how do", "is there", "what is", "what was", "are we", "what kind", "how much", "how many", "how long", "how can", "what was", "what were", "what do you", "what do", "what are"} | questionTokens
 
     presenceTokenList = list(questionTokens | abbrClassTokens | humanClassTokens | locationClassTokens |
                              descriptionClassTokens | entityClassTokens | numberClassTokens | prepositionTokens | adjectivetokens | start_with_tokens)
@@ -180,9 +234,28 @@ def main():
 
     startsWithFeatures = generateFeatureOnTextStart(inputFilePath, start_with_tokens)
 
+    locSynList = ['city', 'countr', 'river', 'ocean', 'canal', 'town', 'village', 'place', 'solar system', ' nation', ' continent', 'destination']
+    personSynList = ['president', 'player', 'painter', 'artist', 'wife', 'actor', 'actress', 'banker', 'writer', 'author', 'doctor', 'judge', 'celebrit', 'explorer', 'pitcher', 'boxer', 'officer', 'leader', 'general', 'soldier', 'coach', 'coder', 'producer']
+    desc_syn_list = ['difference', 'similarit', 'alternative', 'option', 'proof', 'cure', 'makes', 'reason', 'qualification', 'treatment', 'way to', 'ways to']
+    date_syn_list = ['date', 'day', 'time', 'month']
+    score_syn_list = ['rate', 'score', 'count']
+    loc_list2 = ['closest', 'highest', 'largest', 'best', 'worst']
+
+
+    lol = []
+    lol.append(locSynList)
+    lol.append(personSynList)
+    lol.append(desc_syn_list)
+    lol.append(date_syn_list)
+    lol.append(score_syn_list)
+    lol.append(loc_list2)
+
+
+    synFeatures = otherFeatureGeneration(inputFilePath, lol)
+
     citiesList = ""
 
-    featureVectors = np.concatenate((presenceFeatures,regexFeatures, startsWithFeatures), axis=1)
+    featureVectors = np.concatenate((presenceFeatures,regexFeatures, startsWithFeatures, synFeatures), axis=1)
 
     with open(outFilePath, 'w') as outFile:
         writer = csv.writer(outFile)

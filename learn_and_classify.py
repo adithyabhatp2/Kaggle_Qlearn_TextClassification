@@ -45,7 +45,7 @@ class MultiColumnLabelEncoder:
 
 
 def main():
-    version_dir = './v3/'  # needs trailing slash
+    version_dir = './v6/'  # needs trailing slash
 
     # validation split, both files with headers and the Happy column
     train_file = version_dir + 'trainData.csv'
@@ -53,23 +53,28 @@ def main():
     label_file = 'train_labels.csv'
 
 
-    train = pd.read_csv(train_file)[0:2000]
-    test = pd.read_csv(train_file)[2000:]
+    # train = pd.read_csv(train_file)[0:2000]
+    # test = pd.read_csv(train_file)[2000:]
+    #
+    # y_train = pd.read_csv(label_file)[0:2000]['Label']
+    # x_train = train.drop(['id'], axis=1)
+    #
+    # y_test = pd.read_csv(label_file)[2000:].Label
+    # x_test = test.drop(['id'], axis=1)
 
-    y_train = pd.read_csv(label_file)[0:2000]['Label']
+
+    train = pd.read_csv(train_file)[1000:]
+    test = pd.read_csv(train_file)[0:1000]
+
+    y_train = pd.read_csv(label_file)[1000:]['Label']
     x_train = train.drop(['id'], axis=1)
 
-    # print enc_cols
-
-    y_test = pd.read_csv(label_file)[2000:].Label
+    y_test = pd.read_csv(label_file)[0:1000].Label
     x_test = test.drop(['id'], axis=1)
 
-    # y_train_num = []
-    # for i in range(len(y_train)):
-    #     if y_train[i] == 'Pos':
-    #         y_train_num.append(1)
-    #     else:
-    #         y_train_num.append(0)
+
+
+
 
     y_train_num = y_train
     x_train_num = x_train
@@ -107,7 +112,7 @@ def main():
     print "Classifier: "+classifierType
 
     if classifierType == "DT":
-        classifier = DecisionTreeClassifier(min_samples_leaf=10)
+        classifier = DecisionTreeClassifier(min_samples_leaf=5)
         classifier.fit(x_train_num, y_train_num)
         # classifier.fit(np.concatenate((x_train_num, x_train_num), axis=0), np.concatenate((y_train_num, y_train_num), axis=0))
         tree.export_graphviz(classifier, feature_names=used_cols, out_file=version_dir+"weighted_tree.dot")
@@ -115,11 +120,11 @@ def main():
     elif classifierType == "Ada":
         # 200,0.01 - v1
         # 50, 0.1 - v2
-        classifier = AdaBoostClassifier(n_estimators=200, learning_rate=0.1)
+        classifier = AdaBoostClassifier(n_estimators=50, learning_rate=1)
         classifier.fit(x_train_num, y_train_num)
 
     elif classifierType == "SVM":
-        classifier = svm.SVC(probability=True, C=10, kernel='rbf')
+        classifier = svm.SVC(probability=True, C=1, kernel='linear')
         classifier.fit(x_train_num, y_train_num)
         # classifier.fit(np.concatenate((x_train_num, x_train_num), axis=0), np.concatenate((y_train_num, y_train_num), axis=0))
 
